@@ -12,8 +12,18 @@
     tools:context="com.sdcalmes.calendar.MainActivity"
     tools:showIn="@layout/activity_main">
 
-    <TextView
+    <CalendarView
+        android:layout_width="wrap_content"
+        android:layout_height="320dp"
+        android:id="@+id/calendarView"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:id="@+id/listView"
+        android:layout_below="@+id/calendarView"
+        android:layout_alignRight="@+id/calendarView"
+        android:layout_alignEnd="@+id/calendarView" />
 </RelativeLayout>

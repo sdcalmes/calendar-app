@@ -1,5 +1,6 @@
 package com.sdcalmes.calendar;
 
+import android.app.FragmentManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -22,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                showAddDialog();
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
@@ -48,5 +50,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showAddDialog(){
+        FragmentManager fm = getFragmentManager();
+        final AddDialogFragment addDialogFragment = new AddDialogFragment();
+        addDialogFragment.show(fm, "fragment_add_dialog");
     }
 }

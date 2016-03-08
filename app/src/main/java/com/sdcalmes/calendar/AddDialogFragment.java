@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
 
 /**
@@ -42,10 +43,17 @@ public class AddDialogFragment extends DialogFragment {
         mAddEvent.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                ((MainActivity)getActivity()).getData(mTitle.getText().toString(), mDescription.getText().toString(),
-                        mTimePicker.getCurrentHour(),
-                        mTimePicker.getCurrentMinute());
-                dismiss();
+                System.out.println("TITLE: " + mTitle.getText());
+                if(mTitle.getText().toString().matches("") ||
+                        mDescription.getText().toString().matches("")){
+                    Toast.makeText(getActivity(), "You need to include all information!", Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    ((MainActivity) getActivity()).getData(mTitle.getText().toString(), mDescription.getText().toString(),
+                            mTimePicker.getCurrentHour(),
+                            mTimePicker.getCurrentMinute());
+                    dismiss();
+                }
             }
         });
 

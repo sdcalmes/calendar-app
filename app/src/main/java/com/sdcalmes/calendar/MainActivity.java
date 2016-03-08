@@ -1,8 +1,11 @@
 package com.sdcalmes.calendar;
 
+import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.ListActivity;
 import android.bluetooth.BluetoothHealthAppConfiguration;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
@@ -24,8 +27,10 @@ import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.gson.Gson;
 
+import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -35,11 +40,14 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
+    final Context context = this;
     private CalendarView mCalendar;
     final ArrayList<Event> events = new ArrayList<Event>();
     final ArrayList<String> eventTitles = new ArrayList<String>();
     private ArrayAdapter<String> eventTitleAdapter;
     private ArrayAdapter<Event> eventAdapter;
+    final Calendar cal = Calendar.getInstance();
+    private Date selDate = new Date();
 
 
     private ListView listView;
@@ -50,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         SharedPreferences mPrefs = getPreferences(MODE_PRIVATE);
         SharedPreferences.Editor prefsEditor = mPrefs.edit();
-        //prefsEditor.clear().commit();
+       // prefsEditor.clear().commit();
         eventAdapter = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, events);
         eventTitleAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, eventTitles);
         listView = (ListView) findViewById(android.R.id.list);
@@ -69,13 +77,78 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        mCalendar.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+            @Override
+            public void onSelectedDayChange(CalendarView view, int year, int month, int dayOfMonth) {
+                cal.set(year, month, dayOfMonth);
+                long selectedDateInMillis = cal.getTimeInMillis();
+
+                selDate = new Date(selectedDateInMillis);
+                System.out.println("Selected date: " + selDate);
+            }
+        });
+
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Event obj = (Event)eventAdapter.getItem(position);
-                String value = obj.getTitle();
-                Snackbar.make(view, "You clicked on " + value, Snackbar.LENGTH_SHORT)
+                Event obj = (Event) eventAdapter.getItem(position);
+                cal.setTime(obj.getDate());
+                String title = obj.getTitle();
+                String month = new DateFormatSymbols().getMonths()[cal.get(Calendar.MONTH) - 1];
+                int day = cal.get(Calendar.DAY_OF_MONTH);
+                int hour = obj.getHour();
+                int minute = obj.getMinute();
+                String minuteString = Integer.toString(minute);
+                if (minute < 10) {
+                    minuteString = "0" + minute;
+                }
+                String descrip = obj.getDescription();
+
+                Snackbar.make(view, title + " at " + hour + ":" + minuteString + " on " +
+                        month + " " + day + ".\n" + descrip, Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
+            }
+        });
+
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                final Event eventObj = (Event) eventAdapter.getItem(position);
+
+                String msg = "Are you sure you want to delete this event?";
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+                alertDialogBuilder.setMessage(msg);
+                alertDialogBuilder.setCancelable(true);
+                alertDialogBuilder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //if this button is clicked, remove event from SharedPrefs
+                        Gson gson = new Gson();
+                        SharedPreferences mPrefs = getPreferences(MODE_PRIVATE);
+                        SharedPreferences.Editor prefsEditor = mPrefs.edit();
+                        Map<String, ?> allEntries = mPrefs.getAll();
+                        for(Map.Entry<String, ?> entry: allEntries.entrySet()) {
+                            String json = mPrefs.getString(entry.getKey(), "");
+                            Event e1 = gson.fromJson(json, Event.class);
+
+                            if(e1.getTitle().equals(eventObj.getTitle()) &&
+                                    e1.getDescription().equals(eventObj.getDescription())){
+                                prefsEditor.remove(entry.getKey());
+                                prefsEditor.commit();
+                                updateEvents();
+                            }
+                        }
+                    }
+                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //if cancel, close dialog
+                        dialog.cancel();
+                    }
+                });
+                alertDialogBuilder.show();
+
+                return true;
             }
         });
     }
@@ -116,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
         int entrySize = allEntries.size();
         String eventName = "Event" + entrySize;
         Gson gson = new Gson();
-        Date selDate = new Date(mCalendar.getDate());
+        //Date selDate = new Date(mCalendar.getDate());
         Event e1 = new Event(title, description, selDate, hour, minute);
         String json = gson.toJson(e1);
         prefsEditor.putString(eventName, json);
@@ -139,11 +212,14 @@ public class MainActivity extends AppCompatActivity {
             events.add(e1);
         }
         Collections.sort(events, new CustomComparator());
-       // Collections.reverse(events);
-        System.out.println(events.size());
+        String pattern = "MMM dd";
+        SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+        //Collections.reverse(events);
         for(int i = 0; i < events.size(); i++){
-            System.out.println(events.get(i).getTitle());
-            eventTitles.add(events.get(i).getTitle());
+
+            String date = sdf.format(events.get(i).getDate());
+            //System.out.println(events.get(i).getTitle());
+            eventTitles.add(events.get(i).getTitle() + " on " + date);
         }
         eventTitleAdapter.notifyDataSetChanged();
     }

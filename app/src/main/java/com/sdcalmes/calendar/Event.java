@@ -14,6 +14,7 @@ public class Event {
     int minute;
 
     public Event(String title, String description, Date date, int hour, int minute){
+        this.title = title;
         this.description = description;
         this.date = date;
         this.hour = hour;

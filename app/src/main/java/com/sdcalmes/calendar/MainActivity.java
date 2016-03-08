@@ -2,12 +2,14 @@ package com.sdcalmes.calendar;
 
 import android.app.FragmentManager;
 import android.app.ListActivity;
+import android.bluetooth.BluetoothHealthAppConfiguration;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
@@ -24,23 +26,23 @@ import com.google.gson.Gson;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-public class MainActivity extends ListActivity {
+public class MainActivity extends AppCompatActivity {
 
     private CalendarView mCalendar;
     final ArrayList<Event> events = new ArrayList<Event>();
+    final ArrayList<String> eventTitles = new ArrayList<String>();
+    private ArrayAdapter<String> eventTitleAdapter;
+    private ArrayAdapter<Event> eventAdapter;
 
 
     private ListView listView;
-
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    private GoogleApiClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,32 +50,32 @@ public class MainActivity extends ListActivity {
         setContentView(R.layout.activity_main);
         SharedPreferences mPrefs = getPreferences(MODE_PRIVATE);
         SharedPreferences.Editor prefsEditor = mPrefs.edit();
-       // prefsEditor.clear().commit();
-        ArrayAdapter<Event> eventAdapter = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, events);
+        //prefsEditor.clear().commit();
+        eventAdapter = new ArrayAdapter<Event>(this, android.R.layout.simple_list_item_1, events);
+        eventTitleAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, eventTitles);
         listView = (ListView) findViewById(android.R.id.list);
-        listView.setAdapter(eventAdapter);
+        listView.setAdapter(eventTitleAdapter);
         updateEvents();
-        eventAdapter.notifyDataSetChanged();
         mCalendar = (CalendarView) findViewById(R.id.calendarView);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        //setSupportActionBar(toolbar);
+        setSupportActionBar(toolbar);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 showAddDialog();
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_SHORT)
-                        .setAction("Action", null).show();
+
             }
         });
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Event obj = (Event)listView.getAdapter().getItem(position);
+                Event obj = (Event)eventAdapter.getItem(position);
                 String value = obj.getTitle();
-                System.out.println(value);
+                Snackbar.make(view, "You clicked on " + value, Snackbar.LENGTH_SHORT)
+                        .setAction("Action", null).show();
             }
         });
     }
@@ -113,22 +115,21 @@ public class MainActivity extends ListActivity {
 
         int entrySize = allEntries.size();
         String eventName = "Event" + entrySize;
-        System.out.println("Entries: " + entrySize);
         Gson gson = new Gson();
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         Date selDate = new Date(mCalendar.getDate());
-        String selectedDate = sdf.format(new Date(mCalendar.getDate()));
         Event e1 = new Event(title, description, selDate, hour, minute);
         String json = gson.toJson(e1);
         prefsEditor.putString(eventName, json);
         prefsEditor.commit();
-        Map<String, ?> allEntries2 = mPrefs.getAll();
-
         updateEvents();
+
 
     }
 
     public void updateEvents(){
+        System.out.println("UPDATING EVENTS");
+        eventTitles.clear();
+        events.clear();
         Gson gson = new Gson();
         SharedPreferences mPrefs = getPreferences(MODE_PRIVATE);
         Map<String, ?> allEntries = mPrefs.getAll();
@@ -137,6 +138,23 @@ public class MainActivity extends ListActivity {
             Event e1 = gson.fromJson(json, Event.class);
             events.add(e1);
         }
+        Collections.sort(events, new CustomComparator());
+       // Collections.reverse(events);
+        System.out.println(events.size());
+        for(int i = 0; i < events.size(); i++){
+            System.out.println(events.get(i).getTitle());
+            eventTitles.add(events.get(i).getTitle());
+        }
+        eventTitleAdapter.notifyDataSetChanged();
+    }
+
+    public void removeAllEvents(MenuItem item){
+        SharedPreferences mPrefs = getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor prefsEditor = mPrefs.edit();
+        prefsEditor.clear().commit();
+        updateEvents();
+
     }
 
 }
+

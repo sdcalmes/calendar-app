@@ -43,8 +43,8 @@ public class AddDialogFragment extends DialogFragment {
             @Override
             public void onClick(View v){
                 ((MainActivity)getActivity()).getData(mTitle.getText().toString(), mDescription.getText().toString(),
-                        mTimePicker.getHour(),
-                        mTimePicker.getMinute());
+                        mTimePicker.getCurrentHour(),
+                        mTimePicker.getCurrentMinute());
                 dismiss();
             }
         });

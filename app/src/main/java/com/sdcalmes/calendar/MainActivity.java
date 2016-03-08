@@ -85,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
 
                 selDate = new Date(selectedDateInMillis);
                 System.out.println("Selected date: " + selDate);
+                updateEvents();
             }
         });
 
@@ -201,19 +202,26 @@ public class MainActivity extends AppCompatActivity {
 
     public void updateEvents(){
         System.out.println("UPDATING EVENTS");
+        String pattern = "MMM dd";
+        SimpleDateFormat sdf = new SimpleDateFormat(pattern);
         eventTitles.clear();
         events.clear();
         Gson gson = new Gson();
         SharedPreferences mPrefs = getPreferences(MODE_PRIVATE);
         Map<String, ?> allEntries = mPrefs.getAll();
+        System.out.println("SelDate: " + selDate);
+        String selDayMonth = sdf.format(selDate);
         for(Map.Entry<String, ?> entry: allEntries.entrySet()) {
             String json = mPrefs.getString(entry.getKey(), "");
             Event e1 = gson.fromJson(json, Event.class);
-            events.add(e1);
+            String date = sdf.format(e1.getDate());
+            System.out.println(e1.getDate());
+            if(date.equals(selDayMonth)) {
+                events.add(e1);
+            }
         }
         Collections.sort(events, new CustomComparator());
-        String pattern = "MMM dd";
-        SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+
         //Collections.reverse(events);
         for(int i = 0; i < events.size(); i++){
 

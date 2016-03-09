@@ -8,8 +8,6 @@ import java.util.Comparator;
 public class CustomComparator implements Comparator<Event> {
     @Override
     public int compare(Event e1, Event e2) {
-        System.out.println("date 1: " + e1.getDate());
-        System.out.println("date 2: " + e2.getDate());
         int compare = e1.getDate().compareTo(e2.getDate());
         if(compare != 0) return compare;
 

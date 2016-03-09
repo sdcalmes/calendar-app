@@ -43,9 +43,7 @@ public class AddDialogFragment extends DialogFragment {
         mAddEvent.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                System.out.println("TITLE: " + mTitle.getText());
-                if(mTitle.getText().toString().matches("") ||
-                        mDescription.getText().toString().matches("")){
+                if(mTitle.getText().toString().matches("")){
                     Toast.makeText(getActivity(), "You need to include all information!", Toast.LENGTH_SHORT).show();
                 }
                 else {

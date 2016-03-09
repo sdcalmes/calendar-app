@@ -191,7 +191,6 @@ public class MainActivity extends AppCompatActivity {
         int entrySize = allEntries.size();
         String eventName = "Event" + entrySize;
         Gson gson = new Gson();
-        //Date selDate = new Date(mCalendar.getDate());
         Event e1 = new Event(title, description, selDate, hour, minute);
         String json = gson.toJson(e1);
         prefsEditor.putString(eventName, json);

@@ -13,4 +13,11 @@
         android:title="Remove All Events"
         app:showAsAction="never"
         android:onClick="removeAllEvents" />
+    <item
+        android:id="@+id/show_all_events"
+        android:orderInCategory="150"
+        android:title="Show All Events"
+        app:showAsAction="never"
+        android:checkable="true"
+        android:onClick="showAllEvents" />
 </menu>

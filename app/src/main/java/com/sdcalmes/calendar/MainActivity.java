@@ -48,8 +48,9 @@ public class MainActivity extends AppCompatActivity {
     private ArrayAdapter<Event> eventAdapter;
     final Calendar cal = Calendar.getInstance();
     private Date selDate = new Date();
+    private boolean showAll = false;
 
-
+    private MenuItem showAllMenuItem;
     private ListView listView;
 
     @Override
@@ -158,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        showAllMenuItem = (MenuItem)menu.findItem(R.id.show_all_events);
         return true;
     }
 
@@ -216,7 +218,11 @@ public class MainActivity extends AppCompatActivity {
             Event e1 = gson.fromJson(json, Event.class);
             String date = sdf.format(e1.getDate());
             System.out.println(e1.getDate());
-            if(date.equals(selDayMonth)) {
+            if(!showAll) {
+                if (date.equals(selDayMonth)) {
+                    events.add(e1);
+                }
+            } else{
                 events.add(e1);
             }
         }
@@ -238,6 +244,13 @@ public class MainActivity extends AppCompatActivity {
         prefsEditor.clear().commit();
         updateEvents();
 
+    }
+
+    public void showAllEvents(MenuItem item){
+
+        showAll = !showAll;
+        showAllMenuItem.setChecked(showAll);
+        updateEvents();
     }
 
 }
